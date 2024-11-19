@@ -1,0 +1,362 @@
+/*------------------CREATE------------------*/
+-- DataBase:
+CREATE DATABASE FabricaAutomoviles;
+USE FabricaAutomoviles;
+
+-- EMPLEADOS
+DROP TABLE IF EXISTS Empleados;
+CREATE TABLE Empleados (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(50),
+    FechaNacimiento DATE,
+    Documento VARCHAR(8),
+    TipoEmpleadoId INT,
+    AreaId INT,
+    Estado BIT
+);
+
+-- TIPOEMPLEADO
+DROP TABLE IF EXISTS TipoEmpleado;
+CREATE TABLE TipoEmpleado (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Descripcion VARCHAR(50)
+);
+
+-- JORNADALABORAL
+DROP TABLE IF EXISTS JornadaLaboral;
+CREATE TABLE JornadaLaboral (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    FechaTurno DATE,
+    HoraDesde TIME,
+    HoraHasta TIME,
+    EmpleadoId INT
+);
+
+-- AREA
+DROP TABLE IF EXISTS Area;
+CREATE TABLE Area (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Descripcion VARCHAR(50),
+    SupervisorId INT
+);
+
+-- MODELOS
+DROP TABLE IF EXISTS Modelos;
+CREATE TABLE Modelos (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Descripcion VARCHAR(50),
+    AreaId INT
+);
+
+-- MATERIALES
+DROP TABLE IF EXISTS Materiales;
+CREATE TABLE Materiales (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Descripcion VARCHAR(50),
+    Calidad INT CHECK (Calidad BETWEEN 1 AND 5),
+    StockMinimo INT
+);
+
+-- MAQUINARIA
+DROP TABLE IF EXISTS Maquinaria;
+CREATE TABLE Maquinaria (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Fabricante VARCHAR(50),
+    Consumo VARCHAR(50),
+    ModeloId INT
+);
+
+-- ORDENCOMPRA
+DROP TABLE IF EXISTS OrdenCompra;
+CREATE TABLE OrdenCompra (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Fecha DATETIME,
+    Monto DECIMAL,
+    ProveedorId INT
+);
+
+-- COMPRAS
+DROP TABLE IF EXISTS Compras;
+CREATE TABLE Compras (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    OrdenCompraId INT,
+    Descripcion VARCHAR(50),
+    MontoUnitario DECIMAL,
+    Cantidad INT
+);
+
+-- PROVEEDORES
+DROP TABLE IF EXISTS Proveedores;
+CREATE TABLE Proveedores (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(50),
+    Ubicacion VARCHAR(100),
+    Contacto VARCHAR(50)
+);
+
+-- STOCK
+DROP TABLE IF EXISTS Stock;
+CREATE TABLE Stock (
+    MaterialId INT,
+    ProveedorId INT,
+    Cantidad INT,
+    PRIMARY KEY (MaterialId, ProveedorId)
+);
+
+-- MANTENIMIENTOAREA
+DROP TABLE IF EXISTS MantenimientoArea;
+CREATE TABLE MantenimientoArea (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    AreaId INT,
+    ResponsableId INT,
+    UltimoMantenimiento DATETIME,
+    ProximoMantenimiento DATETIME,
+    Calificacion INT CHECK (Calificacion BETWEEN 1 AND 100)
+);
+
+-- REPORTES
+DROP TABLE IF EXISTS Reportes;
+CREATE TABLE Reportes (
+    TipoReporte VARCHAR(50),
+    FechaGeneracion DATETIME
+);
+
+/*------------------FKs------------------*/
+-- EMPLEADOS
+ALTER TABLE Empleados ADD CONSTRAINT FK_Empleados_TipoEmpleado FOREIGN KEY (TipoEmpleadoId) REFERENCES TipoEmpleado(Id);
+ALTER TABLE Empleados ADD CONSTRAINT FK_Empleados_Area FOREIGN KEY (AreaId) REFERENCES Area(Id);
+
+-- JORNADALABORAL
+ALTER TABLE JornadaLaboral ADD CONSTRAINT FK_JornadaLaboral_Empleados FOREIGN KEY (EmpleadoId) REFERENCES Empleados(Id);
+
+-- AREA
+ALTER TABLE Area ADD CONSTRAINT FK_Area_Empleados FOREIGN KEY (SupervisorId) REFERENCES Empleados(Id);
+
+-- MODELOS
+ALTER TABLE Modelos ADD CONSTRAINT FK_Modelos_Area FOREIGN KEY (AreaId) REFERENCES Area(Id);
+
+-- MAQUINARIA
+ALTER TABLE Maquinaria ADD CONSTRAINT FK_Maquinaria_Modelos FOREIGN KEY (ModeloId) REFERENCES Modelos(Id);
+
+-- ORDENCOMPRA
+ALTER TABLE OrdenCompra ADD CONSTRAINT FK_OrdenCompra_Proveedores FOREIGN KEY (ProveedorId) REFERENCES Proveedores(Id);
+
+-- COMPRAS
+ALTER TABLE Compras ADD CONSTRAINT FK_Compras_OrdenCompra FOREIGN KEY (OrdenCompraId) REFERENCES OrdenCompra(Id);
+
+-- STOCK
+ALTER TABLE Stock ADD CONSTRAINT FK_Stock_Materiales FOREIGN KEY (MaterialId) REFERENCES Materiales(Id);
+ALTER TABLE Stock ADD CONSTRAINT FK_Stock_Proveedores FOREIGN KEY (ProveedorId) REFERENCES Proveedores(Id);
+
+-- MANTENIMIENTOAREA
+ALTER TABLE MantenimientoArea ADD CONSTRAINT FK_MantenimientoArea_Area FOREIGN KEY (AreaId) REFERENCES Area(Id);
+ALTER TABLE MantenimientoArea ADD CONSTRAINT FK_MantenimientoArea_Empleados FOREIGN KEY (ResponsableId) REFERENCES Empleados(Id);
+
+
+/*------------------INSERTS------------------*/
+
+INSERT INTO TipoEmpleado (Descripcion) VALUES 
+('Operario'),
+('Supervisor'),
+('Gerente'),
+('Administrativo');
+
+INSERT INTO Area (Descripcion, SupervisorId) VALUES 
+('Producción', NULL), 
+('Mantenimiento', NULL), 
+('Administración', NULL), 
+('Logística', NULL);
+
+INSERT INTO Empleados (Nombre, FechaNacimiento, Documento, TipoEmpleadoId, AreaId, Estado) VALUES 
+('Juan Pérez', '1985-05-12', '12345678', 2, 1, 1), 
+('María López', '1990-08-23', '23456789', 1, 1, 1), 
+('Carlos Gómez', '1980-12-05', '34567890', 3, 3, 1),
+('Ana Torres', '1992-03-15', '45678901', 1, 2, 1),
+('Luis Martínez', '1988-07-19', '56789012', 2, 2, 1),
+('Claudia Ramírez', '1993-11-22', '67890123', 1, 4, 1),
+('Diego Fernández', '1985-06-18', '78901234', 4, 3, 1),
+('Laura Castillo', '1995-02-09', '89012345', 1, 4, 1),
+('Sofía Ortega', '1991-09-30', '90123456', 1, 2, 1),
+('Pedro Sánchez', '1983-04-25', '01234567', 3, 3, 1),
+('Camila Vega', '1989-12-17', '23412345', 1, 1, 1),
+('Héctor Rojas', '1996-01-15', '34523456', 2, 4, 1),
+('Verónica Ruiz', '1992-03-10', '45634567', 4, 3, 1),
+('Felipe Morales', '1987-08-05', '56745678', 3, 2, 1),
+('Carlos Martinez', '1994-05-15', '32443486', 2, 3, 1);
+
+INSERT INTO Modelos (Descripcion, AreaId) VALUES 
+('Modelo A', 1),
+('Modelo B', 1),
+('Modelo C', 2);
+
+INSERT INTO Maquinaria (Fabricante, Consumo, ModeloId) VALUES 
+('Maquinaria SA', '1000W', 1),
+('Industrias Tech', '1200W', 2),
+('Tecnología MX', '800W', 3);
+
+INSERT INTO Materiales (Descripcion, Calidad, StockMinimo) VALUES 
+('Acero', 5, 100),
+('Plástico', 3, 200),
+('Cobre', 4, 150);
+
+INSERT INTO Proveedores (Nombre, Ubicacion, Contacto) VALUES 
+('Proveedor Norte', 'Calle 123, Ciudad A', 'contacto@norte.com'),
+('Proveedor Sur', 'Av. Central, Ciudad B', 'ventas@sur.com'),
+('Proveedor Este', 'Zona Industrial, Ciudad C', 'soporte@este.com');
+
+INSERT INTO Stock (MaterialId, ProveedorId, Cantidad) VALUES 
+(1, 1, 500), 
+(2, 2, 300), 
+(3, 3, 400);
+
+INSERT INTO OrdenCompra (Fecha, Monto, ProveedorId) VALUES 
+('2024-01-15 10:00:00', 2500.50, 1), 
+('2024-02-10 14:30:00', 1800.75, 2);
+
+INSERT INTO Compras (OrdenCompraId, Descripcion, MontoUnitario, Cantidad) VALUES 
+(1, 'Acero', 25.50, 100), 
+(2, 'Plástico', 9.00, 200);
+
+INSERT INTO JornadaLaboral (FechaTurno, HoraDesde, HoraHasta, EmpleadoId) VALUES 
+('2024-11-15', '08:00:00', '16:00:00', 2), 
+('2024-11-16', '08:00:00', '16:00:00', 4);
+
+INSERT INTO MantenimientoArea (AreaId, ResponsableId, UltimoMantenimiento, ProximoMantenimiento, Calificacion) VALUES 
+(2, 4, '2024-10-01 09:00:00', '2024-12-01 09:00:00', 95),
+(1, 2, '2024-09-15 14:00:00', '2024-11-15 14:00:00', 88);
+
+INSERT INTO Reportes (TipoReporte, FechaGeneracion) VALUES 
+('Producción Mensual', '2024-11-01 08:00:00'), 
+('Inventario General', '2024-11-10 12:30:00');
+
+
+/*------------------UPDATE------------------*/
+
+UPDATE Area 
+Set SupervisorID = 1
+Where Id = 1;
+
+UPDATE Area 
+Set SupervisorID = 5
+Where Id = 2;
+
+UPDATE Area 
+Set SupervisorID = 12
+Where Id = 4;
+
+UPDATE Area 
+Set SupervisorID = 15
+Where Id = 3;
+
+/*------------------SPs------------------*/
+
+DELIMITER //
+
+CREATE PROCEDURE CantidadEmpleadosPorArea()
+BEGIN
+    SELECT 
+        A.Descripcion AS Area,
+        COUNT(E.Id) AS CantidadEmpleados
+    FROM 
+        Area A
+    LEFT JOIN 
+        Empleados E ON E.AreaId = A.Id
+	WHERE 
+        E.Estado = 1
+    GROUP BY 
+        A.Descripcion
+    ORDER BY 
+        A.Descripcion;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE InsertarMantenimientoArea(
+    IN p_AreaId INT,
+    IN p_Calificacion INT
+)
+BEGIN
+    DECLARE v_ResponsableId INT;
+
+    SELECT Id INTO v_ResponsableId
+    FROM Empleados
+    WHERE AreaId = p_AreaId
+    LIMIT 1;
+
+    IF v_ResponsableId IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró un empleado para el área proporcionada';
+    END IF;
+
+    INSERT INTO MantenimientoArea (
+        AreaId, 
+        ResponsableId, 
+        UltimoMantenimiento, 
+        ProximoMantenimiento, 
+        Calificacion
+    )
+    VALUES (
+        p_AreaId, 
+        v_ResponsableId, 
+        NOW(), 
+        DATE_ADD(NOW(), INTERVAL 30 DAY), 
+        p_Calificacion
+    );
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE ObtenerEmpleadosProduccion()
+BEGIN
+    DECLARE v_Id INT;
+    DECLARE v_Nombre VARCHAR(50);
+    DECLARE v_Documento VARCHAR(8);
+    DECLARE fin_cursor BOOLEAN DEFAULT FALSE;
+
+    DECLARE cur_Empleados CURSOR FOR
+        SELECT Id, Nombre, Documento 
+        FROM Empleados
+        WHERE AreaId = 1;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = TRUE;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS Temp_EmpleadosProduccion (
+        Id INT,
+        Nombre VARCHAR(50),
+        Documento VARCHAR(8)
+    );
+
+    OPEN cur_Empleados;
+
+    REPEAT
+        FETCH cur_Empleados INTO v_Id, v_Nombre, v_Documento;
+
+        IF NOT fin_cursor THEN
+            INSERT INTO Temp_EmpleadosProduccion (Id, Nombre, Documento)
+            VALUES (v_Id, v_Nombre, v_Documento);
+        END IF;
+
+    UNTIL fin_cursor
+    END REPEAT;
+
+    CLOSE cur_Empleados;
+
+    SELECT * FROM Temp_EmpleadosProduccion;
+
+    DROP TEMPORARY TABLE IF EXISTS Temp_EmpleadosProduccion;
+END //
+
+DELIMITER ;
+
+/*------------------CallsSP------------------*/
+
+/*
+CALL InsertarMantenimientoArea(2, 80); -- Pasarle parametros. 
+CALL CantidadEmpleadosPorArea;
+CALL ObtenerEmpleadosProduccion;
+*/
